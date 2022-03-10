@@ -59,7 +59,7 @@ code {
 
 .month.fullscrean {
   width: 100%;
-  height: 100%;
+  height: 100vh;
 }
 
 .m_name {
@@ -68,14 +68,22 @@ code {
   padding-top: 5px;
   font-size: 30px;
   color: #eeeeee;
+  flex: 0 1 auto;
 }
 
 .m_content {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  display: flex;
+  flex-flow: column;
+  height: 100%;
 }
 
-.m_content > div.day {
+.m_center {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  flex: 1 1 auto;
+}
+
+.m_center > .day {
   margin: 2px;
   min-height: 3vh;
   display: flex;
@@ -86,6 +94,47 @@ code {
   transition: background-color 0.2s;
 }
 
-.m_content > div.day:hover {
+.m_center > .day:hover {
   background-color: #44556c;
+}
+
+.day.targeted {
+  background-color: #ff5722;
+  font-weight: 700;
+}
+
+.day.targeted:hover {
+  background-color: #c8431a;
+}
+
+.flexC {
+  display: flex;
+  justify-content: center;
+}
+
+.day_form {
+  width: 100%;
+  height: 100%;
+}
+
+.day_form > div {
+  width: 100%;
+  height: 100%;
+}
+
+.day_form textarea {
+  flex: 1 1 auto;
+  resize: none;
+  background-color: #c8431a;
+  overflow: auto;
+  border: 1px solid #2d4059;
+  outline: none;
+  color: white;
+  padding: 5px;
+  font-size: 18px;
+}
+
+.flex_grow {
+  display: flex;
+  flex-flow: column;
 }
