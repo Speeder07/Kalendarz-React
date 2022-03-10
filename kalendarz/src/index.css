@@ -54,6 +54,7 @@ code {
   transition: 2s;
   display: inline-block;
   margin: 5px;
+  overflow: auto;
 }
 
 .month.fullscrean {
@@ -72,4 +73,19 @@ code {
 .m_content {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
+}
+
+.m_content > div.day {
+  margin: 2px;
+  min-height: 3vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5vh;
+  color: #eeeeee;
+  transition: background-color 0.2s;
+}
+
+.m_content > div.day:hover {
+  background-color: #44556c;
 }

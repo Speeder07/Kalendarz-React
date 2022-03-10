@@ -12,24 +12,24 @@ class MainMenager extends React.Component
   render()
   {
     return(
-      <Year/>
+      <Year year={2022}/>
     )
   }
 }
 
 
-function Year(params) {
+function Year(p) {
 
   
 
   return(
     <div id='year'>
-      <p id='y_name'>Rok 2020</p>
+      <p id='y_name'>Rok {p.year}</p>
       <div id='y_container'>
 
       
       {Array(12).fill(1).map((el, i) =>
-        <Month id={i}/>
+        <Month year={p.year} month={i}/>
       )}
       </div>
     </div>
@@ -41,17 +41,26 @@ function Month(p) {
 
   return(
     <div className='month'>
-      <div className='m_name' >{months[p.id]}</div>
-      <MonthContent/>
+      <div className='m_name' >{months[p.month]}</div>
+      <MonthContent year={p.year} month={p.month}/>
       
     </div>
   )
 }
 
+function daysInMonth (month, year) {
+  return new Date(year, month, 0).getDate();
+}
+
 function MonthContent(p) {
+  let first_day = new Date(p.year, p.month, 1).getDay();
+  let enpty_space = (first_day==0) ? 6 : first_day-1;
   return(
     <div className='m_content'>
-      {Array(31).fill(1).map((el, i) =>
+      {Array(enpty_space).fill(1).map((el, i) =>
+        <div/>
+      )}
+      {Array(daysInMonth(p.month+1, p.year)).fill(1).map((el, i) =>
         <Day id={i}/>
       )}
     </div>
@@ -59,8 +68,8 @@ function MonthContent(p) {
 }
 
 function Day(p) {
-  return(<div>
-    {p.id}
+  return(<div className='day'>
+    {p.id+1}
     <DayForm/>
   </div>)
 }
