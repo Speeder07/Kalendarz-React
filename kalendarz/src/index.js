@@ -3,14 +3,38 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import React, { useState } from 'react';
+import { colRef } from './firebase';
+import {getFirestore, collection, getDocs, doc} from 'firebase/firestore';
+
 
 const months = new Array('Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień');
+
+
 
 class MainMenager extends React.Component
 {
 
+  
+
+  async getEvents()
+  {
+    getDocs(colRef)
+    .then((snapshot)=> {
+        let events = []
+        snapshot.docs.forEach((doc)=>{
+            events.push({...doc.data(), id: doc.id})
+        })
+        console.log(events);
+    })
+    .catch(err => {
+        console.log(err.message);
+    })
+  }
+
   render()
   {
+    this.getEvents();
+
     return(
       <Year year={2022}/>
     )
