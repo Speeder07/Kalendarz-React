@@ -208,7 +208,7 @@ function DayForm(p) {
       (
         <div className='flex_grow'>
           <div className='flexC'>
-            {p.id+1}
+            <span className='number_day'>{p.id+1}</span>
             <button onClick={p.setTarget}><FontAwesomeIcon icon={faMinus} /></button>
             <button onClick={p.SaveData}><FontAwesomeIcon icon={faSave} /></button>
           </div>
@@ -219,7 +219,7 @@ function DayForm(p) {
       ):
       (
         <div className='row'>
-          <div>{p.id+1}</div><span></span>
+          <div className='number_day'>{p.id+1}</div><span></span>
           <button onClick={p.setTarget}><FontAwesomeIcon icon={faPlus} /></button>
           <button onClick={p.DeleteData}><FontAwesomeIcon icon={faSave} /></button>
         </div>

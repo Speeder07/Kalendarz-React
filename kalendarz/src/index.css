@@ -171,7 +171,8 @@ code {
 
 .row button * {
   cursor: pointer;
-  font-size: 2vw !important;
+  font-size: 1.5vw !important;
+  color: #96a5b8;
 }
 
 .row button:hover * {
@@ -193,4 +194,8 @@ code {
 
 .y_row button * {
   font-size: 3vh;
+}
+
+.number_day {
+  margin-right: 30px;
 }
