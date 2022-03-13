@@ -2,19 +2,29 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
-import React, { useState } from 'react';
-import { colRef } from './firebase';
-import {getFirestore, collection, getDocs, doc} from 'firebase/firestore';
+import React, { useState, useEffect } from 'react';
+import { db, colRef } from './firebase';
+import {getFirestore, collection, getDocs, doc, deleteDoc, addDoc} from 'firebase/firestore';
 
 
 const months = new Array('Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień');
-
+let events = new Array();
 
 
 class MainMenager extends React.Component
 {
 
+  constructor(props) 
+  {
+    super(props);
+    this.state = {events: [], year: 2022};  
+  }
   
+
+  componentDidMount()
+  {
+    this.getEvents();
+  }
 
   async getEvents()
   {
@@ -24,6 +34,8 @@ class MainMenager extends React.Component
         snapshot.docs.forEach((doc)=>{
             events.push({...doc.data(), id: doc.id})
         })
+        this.setState({events: events,});
+        events = events;
         console.log(events);
     })
     .catch(err => {
@@ -33,10 +45,14 @@ class MainMenager extends React.Component
 
   render()
   {
-    this.getEvents();
-
+    let thisYeraEvents = new Array();
+    for (let index = 0; index < this.state.events.length; index++) {
+      if (this.state.events[index].Year==this.state.year) {
+        thisYeraEvents.push(this.state.events[index]);
+      }
+    }
     return(
-      <Year year={2022}/>
+      <Year events={thisYeraEvents} year={2022}/>
     )
   }
 }
@@ -45,7 +61,7 @@ class MainMenager extends React.Component
 function Year(p) {
 
   
-
+  
   return(
     <div id='year'>
       <p id='y_name'>Rok {p.year}</p>
@@ -53,7 +69,16 @@ function Year(p) {
 
       
       {Array(12).fill(1).map((el, i) =>
-        <Month year={p.year} month={i}/>
+        {
+          let temp = new Array();
+          p.events.map((even, eId)=>{
+            if (even.Month-1==i) {
+              temp.push(even);
+            }
+          })
+          return(<Month year={p.year} month={i} events={temp}/>);
+        }
+        
       )}
       </div>
     </div>
@@ -64,10 +89,10 @@ function Year(p) {
 function Month(p) {
   const [fullscrean, setFullscrean] = useState(false);
 
-
+  
   return(
     <div className={(fullscrean)?'month fullscrean':'month'} onClick={()=>{setFullscrean(!fullscrean)}}>
-        <MonthContent year={p.year} month={p.month} fullscrean={fullscrean}/>
+        <MonthContent events={p.events} year={p.year} month={p.month} fullscrean={fullscrean}/>
     </div>
   )
 }
@@ -79,6 +104,7 @@ function daysInMonth (month, year) {
 function MonthContent(p) {
   let first_day = new Date(p.year, p.month, 1).getDay();
   let enpty_space = (first_day==0) ? 6 : first_day-1;
+  
   return(
     <div className='m_content'>
       <div className='m_name' >{months[p.month]}</div>
@@ -87,7 +113,22 @@ function MonthContent(p) {
           <div/>
         )}
         {Array(daysInMonth(p.month+1, p.year)).fill(1).map((el, i) =>
-          <Day id={i} fullscrean={p.fullscrean}/>
+          {
+            var temp = '';
+            p.events.map((event, id)=>{
+              if (event.Day-1 == i) {
+                temp = event;
+              }
+            })
+            if (temp!='') {
+              return <Day event={temp} month={p.month} year={p.year} text={temp.Text} active={true} id={i} fullscrean={p.fullscrean}/>
+            }
+            else{
+              return <Day event={temp} month={p.month} year={p.year} text={""} active={false} id={i} fullscrean={p.fullscrean}/>
+            }
+            
+          } 
+          
         )}
       </div>
       </div> 
@@ -99,9 +140,28 @@ function Day(p) {
   const [targeted, setTarget] = useState(false);
   let [text, setText] = useState('');
 
+  useEffect(() => {
+    setTarget(p.active);
+    setText(p.text);
+  }, [p.active, p.text]);
+
+
+  function SaveData() {
+  
+    if (p.event!='') {
+      console.log("1   "+(p.event.Day-1)+"=="+(p.id)+" "+(p.event.Month-1)+"=="+(p.month)+"  "+p.event.Year+"=="+p.year);
+      const docRef = doc(db, 'events', p.event.id);
+      deleteDoc(docRef);
+    }
+    addDoc(colRef, {Year: p.year, Month: p.month+1, Day: p.id+1, Text: text,})
+    .then(()=>{window.location.reload(true)})
+    
+
+    
+  }
+
   function OnClick(e, id) {
     e.stopPropagation();
-    console.log(id);
   }
 
   function TargetedClick(params) {
@@ -112,8 +172,14 @@ function Day(p) {
     setText(e.target.value);
   }
 
-  return(<div className={(targeted)?'day targeted':'day'} onClick={(event)=>OnClick(event, p.id)}>
-    {(p.fullscrean)?<DayForm id={p.id} targeted={targeted} setTarget={TargetedClick} text={text} textChange={TestChange}/> :p.id+1}
+  function DayOfWeak(year, month, day) {
+    return new Date(year, month, day).getDay();
+  }
+
+  console.log(p.year +" "+ p.month+" "+ p.id+" "+DayOfWeak(p.year, p.month, p.id));
+
+  return(<div style={{color : (DayOfWeak(p.year, p.month, p.id)==6)?"#ffbe76":""}} className={(targeted)?'day targeted':'day'} onClick={(event)=>OnClick(event, p.id)}>
+    {(p.fullscrean)?<DayForm SaveData={SaveData} id={p.id} month={p.month} year={p.year} targeted={targeted} setTarget={TargetedClick} text={text} textChange={TestChange}/> :p.id+1}
     
     
   </div>)
@@ -122,7 +188,6 @@ function Day(p) {
 function DayForm(p) {
   
   
-
   
   return(
     <div className='day_form'>
@@ -132,7 +197,7 @@ function DayForm(p) {
           <div className='flexC'>
             {p.id+1}
             <button onClick={p.setTarget}>-</button>
-            <button>S</button>
+            <button onClick={p.SaveData}>S</button>
           </div>
           <textarea value={p.text} onChange={p.textChange} >
             
