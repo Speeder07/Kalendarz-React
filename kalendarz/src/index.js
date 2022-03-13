@@ -5,7 +5,8 @@ import reportWebVitals from './reportWebVitals';
 import React, { useState, useEffect } from 'react';
 import { db, colRef } from './firebase';
 import {getFirestore, collection, getDocs, doc, deleteDoc, addDoc} from 'firebase/firestore';
-
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {faSave, faPlus, faMinus} from '@fortawesome/free-solid-svg-icons';
 
 const months = new Array('Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień');
 let events = new Array();
@@ -147,17 +148,20 @@ function Day(p) {
 
 
   function SaveData() {
-  
     if (p.event!='') {
-      console.log("1   "+(p.event.Day-1)+"=="+(p.id)+" "+(p.event.Month-1)+"=="+(p.month)+"  "+p.event.Year+"=="+p.year);
       const docRef = doc(db, 'events', p.event.id);
       deleteDoc(docRef);
     }
     addDoc(colRef, {Year: p.year, Month: p.month+1, Day: p.id+1, Text: text,})
     .then(()=>{window.location.reload(true)})
-    
+  }
 
-    
+  function DeleteData() {
+    if (p.event!='') {
+      const docRef = doc(db, 'events', p.event.id);
+      deleteDoc(docRef)
+      .then(()=>{window.location.reload(true)})
+    }
   }
 
   function OnClick(e, id) {
@@ -177,8 +181,8 @@ function Day(p) {
   }
 
 
-  return(<div style={{color : (DayOfWeak(p.year, p.month, p.id)==6)?"#ffbe76":""}} className={(targeted)?'day targeted':'day'} onClick={(event)=>OnClick(event, p.id)}>
-    {(p.fullscrean)?<DayForm SaveData={SaveData} id={p.id} month={p.month} year={p.year} targeted={targeted} setTarget={TargetedClick} text={text} textChange={TestChange}/> :p.id+1}
+  return(<div style={{color : (DayOfWeak(p.year, p.month, p.id)==6)?"#ffbe76":""}} className={((targeted)?'day targeted':'day')+' '+ ((p.fullscrean)?'full':'')} onClick={(event)=>OnClick(event, p.id)}>
+    {(p.fullscrean)?<DayForm DeleteData={DeleteData} SaveData={SaveData} id={p.id} month={p.month} year={p.year} targeted={targeted} setTarget={TargetedClick} text={text} textChange={TestChange}/> :p.id+1}
     
     
   </div>)
@@ -195,8 +199,8 @@ function DayForm(p) {
         <div className='flex_grow'>
           <div className='flexC'>
             {p.id+1}
-            <button onClick={p.setTarget}>-</button>
-            <button onClick={p.SaveData}>S</button>
+            <button onClick={p.setTarget}><FontAwesomeIcon icon={faMinus} /></button>
+            <button onClick={p.SaveData}><FontAwesomeIcon icon={faSave} /></button>
           </div>
           <textarea value={p.text} onChange={p.textChange} >
             
@@ -204,9 +208,10 @@ function DayForm(p) {
         </div>
       ):
       (
-        <div>
-          <div>{p.id+1}</div>
-          <button onClick={p.setTarget}>+</button>
+        <div className='row'>
+          <div>{p.id+1}</div><span></span>
+          <button onClick={p.setTarget}><FontAwesomeIcon icon={faPlus} /></button>
+          <button onClick={p.DeleteData}><FontAwesomeIcon icon={faSave} /></button>
         </div>
       )
       

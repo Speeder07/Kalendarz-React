@@ -89,9 +89,9 @@ code {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2.5vh;
+  font-size: 1.25vw;
   color: #eeeeee;
-  transition: background-color 0.2s;
+  transition: font-size 2s, background-color 0.5s;
 }
 
 .m_center > .day:hover {
@@ -110,6 +110,21 @@ code {
 .flexC {
   display: flex;
   justify-content: center;
+  gap: 5px;
+  font-size: 1.5em;
+}
+
+.flexC button {
+  background: none;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  color: #eeeeee;
+  font-size: 0.5em;
+}
+
+.flexC button:hover * {
+  color: #222831;
 }
 
 .day_form {
@@ -137,4 +152,28 @@ code {
 .flex_grow {
   display: flex;
   flex-flow: column;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.row * {
+  font-size: 3vw;
+  background: none;
+  border: none;
+  outline: none;
+  color: #eeeeee;
+}
+
+.row button * {
+  cursor: pointer;
+  font-size: 2vw !important;
+}
+
+.row button:hover * {
+  color: #ff5722;
 }
