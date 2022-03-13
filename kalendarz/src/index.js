@@ -176,7 +176,6 @@ function Day(p) {
     return new Date(year, month, day).getDay();
   }
 
-  console.log(p.year +" "+ p.month+" "+ p.id+" "+DayOfWeak(p.year, p.month, p.id));
 
   return(<div style={{color : (DayOfWeak(p.year, p.month, p.id)==6)?"#ffbe76":""}} className={(targeted)?'day targeted':'day'} onClick={(event)=>OnClick(event, p.id)}>
     {(p.fullscrean)?<DayForm SaveData={SaveData} id={p.id} month={p.month} year={p.year} targeted={targeted} setTarget={TargetedClick} text={text} textChange={TestChange}/> :p.id+1}
