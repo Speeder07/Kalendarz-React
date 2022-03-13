@@ -177,3 +177,20 @@ code {
 .row button:hover * {
   color: #ff5722;
 }
+
+.y_row {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+}
+
+.y_row button {
+  background: none;
+  border: none;
+  color: #eeeeee;
+  cursor: pointer;
+}
+
+.y_row button * {
+  font-size: 3vh;
+}

@@ -6,10 +6,9 @@ import React, { useState, useEffect } from 'react';
 import { db, colRef } from './firebase';
 import {getFirestore, collection, getDocs, doc, deleteDoc, addDoc} from 'firebase/firestore';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faSave, faPlus, faMinus} from '@fortawesome/free-solid-svg-icons';
+import {faSave, faPlus, faMinus, faCircleArrowLeft, faCircleArrowRight} from '@fortawesome/free-solid-svg-icons';
 
 const months = new Array('Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień');
-let events = new Array();
 
 
 class MainMenager extends React.Component
@@ -18,14 +17,22 @@ class MainMenager extends React.Component
   constructor(props) 
   {
     super(props);
-    this.state = {events: [], year: 2022};  
+    this.state = {events: new Array(), year: 2022};  
+    this.setYear = this.setYear.bind(this);
   }
   
+  setYear(value)
+  {
+    this.setState({year: this.state.year+value});
+  }
 
   componentDidMount()
   {
+    let data = new Date();
+    this.setState({year: data.getFullYear()});
     this.getEvents();
   }
+  
 
   async getEvents()
   {
@@ -53,7 +60,7 @@ class MainMenager extends React.Component
       }
     }
     return(
-      <Year events={thisYeraEvents} year={2022}/>
+      <Year events={thisYeraEvents} year={this.state.year} setYear={this.setYear}/>
     )
   }
 }
@@ -61,11 +68,14 @@ class MainMenager extends React.Component
 
 function Year(p) {
 
-  
-  
   return(
     <div id='year'>
-      <p id='y_name'>Rok {p.year}</p>
+      <div className='y_row'>
+        <p id='y_name'>Rok {p.year}</p>
+        <button onClick={()=>p.setYear(-1)}><FontAwesomeIcon icon={faCircleArrowLeft} /></button>
+        <button onClick={()=>p.setYear(1)}><FontAwesomeIcon icon={faCircleArrowRight} /></button>
+      </div>
+      
       <div id='y_container'>
 
       
