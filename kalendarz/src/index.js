@@ -6,10 +6,14 @@ import React, { useState, useEffect } from 'react';
 import { db, colRef } from './firebase';
 import {getFirestore, collection, getDocs, doc, deleteDoc, addDoc} from 'firebase/firestore';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faSave, faPlus, faMinus, faCircleArrowLeft, faCircleArrowRight} from '@fortawesome/free-solid-svg-icons';
+import {faSave, faPlus, faMinus, faCircleArrowLeft, faCircleArrowRight, faArrowUp} from '@fortawesome/free-solid-svg-icons';
+import { render } from '@testing-library/react';
 
 const months = new Array('Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień');
 
+function daysInMonth(month, year) {
+  return 
+}
 
 class MainMenager extends React.Component
 {
@@ -17,10 +21,22 @@ class MainMenager extends React.Component
   constructor(props) 
   {
     super(props);
-    this.state = {events: new Array(), year: 2022};  
+    this.state = {events: new Array(), year: 2022, month: -1, week: -1};  
     this.setYear = this.setYear.bind(this);
+    this.setMonthViev = this.setMonthViev.bind(this);
+    this.setWeek = this.setWeek.bind(this);
   }
   
+  setWeek(weekNumber)
+  {
+    this.setState({week: weekNumber});
+  }
+
+  setMonthViev(monthNumber)
+  {
+    this.setState({month: monthNumber});
+  }
+
   setYear(value)
   {
     this.setState({year: this.state.year+value});
@@ -59,21 +75,33 @@ class MainMenager extends React.Component
         thisYeraEvents.push(this.state.events[index]);
       }
     }
-    return(
-      <Year events={thisYeraEvents} year={this.state.year} setYear={this.setYear}/>
+
+    let display;
+    if (this.state.week!=-1) {
+      display = <WeekViev events={this.state.events} year={this.state.year} monthNumber={this.state.month} weekNumber={this.state.week} setWeek={this.setWeek}/>;
+    }
+    else if (this.state.month!=-1) {
+      display = <MonthViev year={this.state.year} monthNumber={this.state.month} setMonth={this.setMonthViev} setWeek={this.setWeek}/>;
+    }
+    else{
+      display = <YearViev events={thisYeraEvents} year={this.state.year} setYear={this.setYear} setMonth={this.setMonthViev}/>;
+    }
+    return(<div>
+      {display}
+    </div>
+      
     )
   }
 }
 
 
-function Year(p) {
-
+function YearViev(params) {
   return(
     <div id='year'>
       <div className='y_row'>
-        <p id='y_name'>Rok {p.year}</p>
-        <button onClick={()=>p.setYear(-1)}><FontAwesomeIcon icon={faCircleArrowLeft} /></button>
-        <button onClick={()=>p.setYear(1)}><FontAwesomeIcon icon={faCircleArrowRight} /></button>
+        <p id='y_name'>Rok {params.year}</p>
+        <button onClick={()=>params.setYear(-1)}><FontAwesomeIcon icon={faCircleArrowLeft} /></button>
+        <button onClick={()=>params.setYear(1)}><FontAwesomeIcon icon={faCircleArrowRight} /></button>
       </div>
       
       <div id='y_container'>
@@ -82,12 +110,12 @@ function Year(p) {
       {Array(12).fill(1).map((el, i) =>
         {
           let temp = new Array();
-          p.events.map((even, eId)=>{
+          params.events.map((even, eId)=>{
             if (even.Month-1==i) {
               temp.push(even);
             }
           })
-          return(<Month year={p.year} month={i} events={temp}/>);
+          return(<MonthTileButton monthNumber={i} setMonth={params.setMonth}/>);
         }
         
       )}
@@ -97,137 +125,201 @@ function Year(p) {
   )
 }
 
-function Month(p) {
-  const [fullscrean, setFullscrean] = useState(false);
-
-  
+function MonthTileButton(params) {
   return(
-    <div className={(fullscrean)?'month fullscrean':'month'} onClick={()=>{setFullscrean(!fullscrean)}}>
-        <MonthContent events={p.events} year={p.year} month={p.month} fullscrean={fullscrean}/>
+    <div className='monthTileButton' onClick={()=>params.setMonth(params.monthNumber)}>
+      <div className='monthTileButtonContent' >
+        {months[params.monthNumber]}
+      </div>
     </div>
   )
 }
 
-function daysInMonth (month, year) {
-  return new Date(year, month, 0).getDate();
+function MonthViev(params) {
+  let first_day = new Date(params.year, params.monthNumber, 1).getDay();
+  let enpty_spaces = (first_day==0) ? 6 : first_day-1;
+  let daysInMonth = new Date(params.year, params.monthNumber+1, 0).getDate();
+
+  let numberOfWeeks =  Math.floor((enpty_spaces + daysInMonth) / 7) +1;
+  
+
+  return(
+    <div>
+      <div className='monthHeader'>
+        <button onClick={()=>params.setMonth(-1)}><FontAwesomeIcon icon={faArrowUp} /></button>
+        {months[params.monthNumber]}
+        <button onClick={()=>params.setMonth((params.monthNumber>=1)?params.monthNumber-1:params.monthNumber)}><FontAwesomeIcon icon={faCircleArrowLeft} /></button>
+        <button onClick={()=>params.setMonth((params.monthNumber<=10)?params.monthNumber+1:params.monthNumber)}><FontAwesomeIcon icon={faCircleArrowRight} /></button>
+        
+      </div>
+      <div className='monthContent'>
+      {Array(numberOfWeeks).fill(1).map((el, id) =>
+        {
+          return(<WeekTileButton week={id} setWeek={params.setWeek}/>);
+        }
+      )}
+      </div>
+    </div>
+  )
 }
 
-function MonthContent(p) {
-  let first_day = new Date(p.year, p.month, 1).getDay();
-  let enpty_space = (first_day==0) ? 6 : first_day-1;
+function WeekTileButton(params) {
   
   return(
-    <div className='m_content'>
-      <div className='m_name' >{months[p.month]}</div>
-      <div className='m_center'>
-        {Array(enpty_space).fill(1).map((el, i) =>
-          <div/>
-        )}
-        {Array(daysInMonth(p.month+1, p.year)).fill(1).map((el, i) =>
+    <div className='weekTileButton' onClick={()=>params.setWeek(params.week)}>
+      <div className='weekTileContent'>
+        Week {params.week+1}
+      </div>
+    </div>
+  )
+}
+
+function WeekViev(params) {
+  let first_day = new Date(params.year, params.monthNumber, 1).getDay();
+  let enpty_spaces = (first_day==0) ? 6 : first_day-1;
+  let daysInMonth = new Date(params.year, params.monthNumber+1, 0).getDate();
+
+  let numberOfWeeks =  Math.floor((enpty_spaces + daysInMonth) / 7) +1;
+
+  let daysInPrevMonth;
+  if (params.monthNumber!=0) {
+    daysInPrevMonth = new Date(params.year, params.monthNumber, 0).getDate();
+  }
+  else{
+    daysInPrevMonth = new Date(params.year-1, 12, 0).getDate();
+  }
+
+  let temp = 0;
+  return(
+    <div>
+      <div className='weekHeader'>
+        <button onClick={()=>params.setWeek(-1)}><FontAwesomeIcon icon={faArrowUp} /></button>
+        {months[params.monthNumber]+", "+(params.weekNumber+1)+" Tydzień"}
+        <button onClick={()=>params.setWeek((params.weekNumber>=1)?params.weekNumber-1:params.weekNumber)}><FontAwesomeIcon icon={faCircleArrowLeft} /></button>
+        <button onClick={()=>params.setWeek((params.weekNumber<numberOfWeeks-1)?params.weekNumber+1:params.weekNumber)}><FontAwesomeIcon icon={faCircleArrowRight} /></button>
+        
+      </div>
+      <div className='weekContent'>
+        {Array(7).fill(1).map((el, i) =>
           {
-            var temp = '';
-            p.events.map((event, id)=>{
-              if (event.Day-1 == i) {
-                temp = event;
+            if (params.weekNumber==0) {
+              if (i<enpty_spaces) {
+                return <div className='dayFalse'><div>{daysInPrevMonth-enpty_spaces+(i+1)}</div></div>
               }
-            })
-            if (temp!='') {
-              return <Day event={temp} month={p.month} year={p.year} text={temp.Text} active={true} id={i} fullscrean={p.fullscrean}/>
+              else{
+                return <DayVievTile events={params.events} dayNumber={i-enpty_spaces+1} monthNumber={params.monthNumber} year={params.year}/>
+              }
+
+            }
+            else if (params.weekNumber==numberOfWeeks-1) {
+              
+              if (params.weekNumber*7+i-enpty_spaces+1 > daysInMonth) {
+                return <div className='dayFalse'><div>{i-temp+1}</div></div>
+              }
+              else{
+                temp+=1;
+                return <DayVievTile events={params.events} dayNumber={params.weekNumber*7+i-enpty_spaces+1} monthNumber={params.monthNumber} year={params.year}/>
+              }
             }
             else{
-              return <Day event={temp} month={p.month} year={p.year} text={""} active={false} id={i} fullscrean={p.fullscrean}/>
+              return <DayVievTile events={params.events} dayNumber={params.weekNumber*7+i-enpty_spaces+1} monthNumber={params.monthNumber} year={params.year}/>
             }
-            
-          } 
-          
+
+          }
         )}
       </div>
-      </div> 
+    </div>
   )
 }
 
-function Day(p) {
 
-  const [targeted, setTarget] = useState(false);
-  let [text, setText] = useState('');
+function DayVievTile(params) {
+  const [listCount, setListCount] = useState(0);
+  const [listTitles, setListTitles] = useState(new Array());
+
+  function FindEvent() {
+    for (let index = 0; index < params.events.length; index++) {
+      if (params.events[index].Day == params.dayNumber &&
+        params.events[index].Month == params.monthNumber+1 &&
+        params.events[index].Year == params.year) 
+      {
+        return params.events[index];
+      }
+    }
+    return '';
+  }
+
+  function CorectData(event) {
+    if (event!="") {
+      let words = event.Text.split(" ");
+      setListCount(words.length);
+      setListTitles(words);
+    }
+    else{
+      setListCount(0);
+      setListTitles(new Array());
+    }
+    
+  }
+
+  function GetText() {
+    let text="";
+    for (let index = 0; index < listTitles.length; index++) {
+      text += listTitles[index];
+      if (index!=listTitles.length-1) {
+        text+=" ";
+      }
+    }
+    return text;
+  }
+
+  function HandleChange(e, index) {
+      let arrayTemp = listTitles;
+      arrayTemp[index] = e.target.value;
+      setListTitles(arrayTemp);
+      console.log(listTitles);
+  }
+
+  function Save() {
+    let dayEvent = FindEvent();
+    if (dayEvent!='') {
+      const docRef = doc(db, 'events', dayEvent.id);
+      deleteDoc(docRef);
+
+      
+    }
+    addDoc(colRef, {Year: params.year, Month: params.monthNumber+1, Day: params.dayNumber, Text: GetText(),})
+      .then(()=>{window.location.reload(true)})
+  }
 
   useEffect(() => {
-    setTarget(p.active);
-    setText(p.text);
-  }, [p.active, p.text]);
-
-
-  function SaveData() {
-    if (p.event!='') {
-      const docRef = doc(db, 'events', p.event.id);
-      deleteDoc(docRef);
-    }
-    addDoc(colRef, {Year: p.year, Month: p.month+1, Day: p.id+1, Text: text,})
-    .then(()=>{window.location.reload(true)})
-  }
-
-  function DeleteData() {
-    if (p.event!='') {
-      const docRef = doc(db, 'events', p.event.id);
-      deleteDoc(docRef)
-      .then(()=>{window.location.reload(true)})
-    }
-  }
-
-  function OnClick(e, id) {
-    e.stopPropagation();
-  }
-
-  function TargetedClick(params) {
-    setTarget(!targeted);
-  }
-
-  function TestChange(e) {
-    setText(e.target.value);
-  }
-
-  function DayOfWeak(year, month, day) {
-    return new Date(year, month, day).getDay();
-  }
-
-
-  return(<div style={{color : (DayOfWeak(p.year, p.month, p.id)==6)?"#ffbe76":""}} className={((targeted)?'day targeted':'day')+' '+ ((p.fullscrean)?'full':'')} onClick={(event)=>OnClick(event, p.id)}>
-    {(p.fullscrean)?<DayForm DeleteData={DeleteData} SaveData={SaveData} id={p.id} month={p.month} year={p.year} targeted={targeted} setTarget={TargetedClick} text={text} textChange={TestChange}/> :p.id+1}
+    CorectData(FindEvent());
+    /*setListCount(0);
+    setListTitles(new Array());
+    setDayEvent("");*/
     
-    
-  </div>)
-}
-
-function DayForm(p) {
-  
-  
+  }, [params.dayNumber]);
   
   return(
-    <div className='day_form'>
-      {(p.targeted)?
-      (
-        <div className='flex_grow'>
-          <div className='flexC'>
-            <span className='number_day'>{p.id+1}</span>
-            <button onClick={p.setTarget}><FontAwesomeIcon icon={faMinus} /></button>
-            <button onClick={p.SaveData}><FontAwesomeIcon icon={faSave} /></button>
-          </div>
-          <textarea value={p.text} onChange={p.textChange} >
-            
-          </textarea>
-        </div>
-      ):
-      (
-        <div className='row'>
-          <div className='number_day'>{p.id+1}</div><span></span>
-          <button onClick={p.setTarget}><FontAwesomeIcon icon={faPlus} /></button>
-          <button onClick={p.DeleteData}><FontAwesomeIcon icon={faSave} /></button>
-        </div>
-      )
-      
-      }
+    <div className='dayViev'>
+      <div className='dayVievHeader'>
+        <div>{params.dayNumber}</div>
+        <button onClick={()=>setListCount(listCount+1)}><FontAwesomeIcon icon={faPlus} /></button>
+        <button onClick={Save}><FontAwesomeIcon icon={faSave} /></button>
+      </div>
+      <form id={'form'+params.dayNumber}>
+      {Array(listCount).fill(1).map((el, i) =>
+          {
+            return <div className='inputField'>
+              <input className='inputDay' id={'form'+" "+params.dayNumber+" "+i} value={listTitles[i]} type="text" onChange={(e)=>{HandleChange(e, i)}}></input>
+            </div>
+          }
+        )}
+      </form>
       
     </div>
+    
+    
   )
 }
 // If you want to start measuring performance in your app, pass a function
