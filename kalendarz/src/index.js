@@ -109,12 +109,6 @@ function YearViev(params) {
       
       {Array(12).fill(1).map((el, i) =>
         {
-          let temp = new Array();
-          params.events.map((even, eId)=>{
-            if (even.Month-1==i) {
-              temp.push(even);
-            }
-          })
           return(<MonthTileButton monthNumber={i} setMonth={params.setMonth}/>);
         }
         
